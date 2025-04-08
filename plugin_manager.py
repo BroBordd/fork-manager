@@ -841,7 +841,7 @@ class Plugin:
 class ChangelogWindow(popup.PopupWindow):
     def __init__(self, origin_widget):
         p = origin_widget.get_screen_space_center()
-        self.scale_origin = (p[0],p[1]+40)
+        self.scale_origin = (p[0], p[1]+40)
         bui.getsound('swish').play()
         s = 1.65 if _uiscale is babase.UIScale.SMALL else 1.39 if _uiscale is babase.UIScale.MEDIUM else 1.67
         width = 400 * s
@@ -999,7 +999,7 @@ class PluginWindow(popup.PopupWindow):
         self.button_callback = button_callback
 #        self.scale_origin = origin_widget.get_screen_space_center()
         p = origin_widget.get_screen_space_center()
-        self.scale_origin = (p[0]-205,p[1]+30)
+        self.scale_origin = (p[0]-205, p[1]+30)
 
         loop.create_task(self.draw_ui())
 
@@ -1211,7 +1211,8 @@ class PluginWindow(popup.PopupWindow):
                 label="",
                 color=(0.6, 0.53, 0.63)
             )
-            bui.buttonwidget(open_button,on_activate_call=lambda: tutorial_confirm_window(open_button))
+            bui.buttonwidget(
+                open_button, on_activate_call=lambda: tutorial_confirm_window(open_button))
 
             bui.imagewidget(parent=self._root_widget,
                             position=(open_pos_x, open_pos_y),
@@ -1875,7 +1876,7 @@ class PluginManagerWindow(bui.MainWindow):
             self.category_selection_button = b = bui.buttonwidget(
                 parent=self._root_widget,
                 position=(category_pos_x,
-                        category_pos_y),
+                          category_pos_y),
                 size=b_size,
                 label=label,
                 button_type="square",
@@ -1891,12 +1892,12 @@ class PluginManagerWindow(bui.MainWindow):
             ) if b.exists() else None
 
     def get_order_label(self) -> str:
-        return self.selected_alphabet_order.replace('_',' - ').upper()
+        return self.selected_alphabet_order.replace('_', ' - ').upper()
 
     async def _on_order_button_press(self) -> None:
         bui.getsound('deek').play()
         self.selected_alphabet_order = ('a_z' if self.selected_alphabet_order == 'z_a' else 'z_a')
-        bui.buttonwidget(edit=self.alphabet_order_selection_button,label=self.get_order_label())
+        bui.buttonwidget(edit=self.alphabet_order_selection_button, label=self.get_order_label())
         filter_text = bui.textwidget(parent=self._root_widget, query=self._filter_widget)
         if self.plugin_manager.categories != {}:
             if self.plugin_manager.categories['All'] is not None:
@@ -2123,7 +2124,8 @@ class PluginManagerWindow(bui.MainWindow):
                 v_align='center',
                 maxwidth=420
             )
-            bui.textwidget(text_widget, on_activate_call=lambda: self.show_plugin_window(plugin,source=text_widget))
+            bui.textwidget(text_widget, on_activate_call=lambda: self.show_plugin_window(
+                plugin, source=text_widget))
             self.plugins_in_current_view[plugin.name] = text_widget
             # XXX: This seems nicer. Might wanna use this in future.
             # text_widget.add_delete_callback(lambda: self.plugins_in_current_view.pop(plugin.name))
@@ -2285,7 +2287,8 @@ class PluginManagerSettingsWindow(popup.PopupWindow):
             plugin_manager_update_available = await self._plugin_manager.get_update_details()
         except urllib.error.URLError:
             plugin_manager_update_available = False
-        if not self._root_widget.exists(): return
+        if not self._root_widget.exists():
+            return
         discord_width = (width * 0.20) if plugin_manager_update_available else (width * 0.31)
         self.discord_button = bui.buttonwidget(
             parent=self._root_widget,
