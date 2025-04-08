@@ -38,7 +38,6 @@ class VeryPW(party.PartyWindow):
     def _d(s): s._p(1)
 
     def _p(s, i=0):
-        print(s._chat_texts)
         if s._f:
             s._o = tw(query=s._text_field)
             s._f = False
