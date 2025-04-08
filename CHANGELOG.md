@@ -1,5 +1,7 @@
 ## Plugin Manager (dd-mm-yyyy)
 
+### 1.1.4 (08-04-2025)
+
 ### 1.1.3 (06-04-2025)
 
 - Hot Fix
@@ -11,15 +13,15 @@
 ### 1.1.1 (09-02-2025)
 
 - Added bomb spinner widget for loading animation.
-  
+
 ### 1.1.0 (23-01-2025)
 
-- Updated to bombsquad api 9. 
-  
+- Updated to bombsquad api 9.
+
 ### 1.0.23 (13-01-2025)
 
 - Fixed a bug which wasn't letting older versions run Plugin Manager.
-  
+
 ### 1.0.22 (07-08-2024)
 
 - Fixed a few Errors and UI Bugs.

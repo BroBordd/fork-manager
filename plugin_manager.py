@@ -29,7 +29,7 @@ from datetime import datetime
 # Modules used for overriding AllSettingsWindow
 import logging
 
-PLUGIN_MANAGER_VERSION = "1.1.3"
+PLUGIN_MANAGER_VERSION = "1.1.4"
 REPOSITORY_URL = "https://github.com/bombsquad-community/plugin-manager"
 # Current tag can be changed to "staging" or any other branch in
 # plugin manager repo for testing purpose.
@@ -840,7 +840,8 @@ class Plugin:
 
 class ChangelogWindow(popup.PopupWindow):
     def __init__(self, origin_widget):
-        self.scale_origin = origin_widget.get_screen_space_center()
+        p = origin_widget.get_screen_space_center()
+        self.scale_origin = (p[0],p[1]+40)
         bui.getsound('swish').play()
         s = 1.65 if _uiscale is babase.UIScale.SMALL else 1.39 if _uiscale is babase.UIScale.MEDIUM else 1.67
         width = 400 * s
@@ -870,6 +871,7 @@ class ChangelogWindow(popup.PopupWindow):
             size=(60, 60),
             scale=0.8,
             label=babase.charstr(babase.SpecialChar.BACK),
+            enable_sound=False,
             button_type='backSmall',
             on_activate_call=self._back)
 
@@ -995,7 +997,9 @@ class PluginWindow(popup.PopupWindow):
     def __init__(self, plugin, origin_widget, button_callback=lambda: None):
         self.plugin = plugin
         self.button_callback = button_callback
-        self.scale_origin = origin_widget.get_screen_space_center()
+#        self.scale_origin = origin_widget.get_screen_space_center()
+        p = origin_widget.get_screen_space_center()
+        self.scale_origin = (p[0]-205,p[1]+30)
 
         loop.create_task(self.draw_ui())
 
@@ -1187,25 +1191,27 @@ class PluginWindow(popup.PopupWindow):
         # Below snippet handles the tutorial button in the plugin window
         tutorial_url = self.plugin.info["external_url"]
         if tutorial_url:
-            def tutorial_confirm_window():
+            def tutorial_confirm_window(source):
                 text = "This will take you to \n\""+self.plugin.info["external_url"] + "\""
                 tutorial_confirm_window = confirm.ConfirmWindow(
                     text=text,
                     action=lambda: bui.open_url(self.plugin.info["external_url"]),
+                    origin_widget=source
                 )
             open_pos_x = (440 if _uiscale is babase.UIScale.SMALL else
                           500 if _uiscale is babase.UIScale.MEDIUM else 490)
             open_pos_y = (100 if _uiscale is babase.UIScale.SMALL else
                           110 if _uiscale is babase.UIScale.MEDIUM else 120)
-            open_button = bui.buttonwidget(parent=self._root_widget,
-                                           autoselect=True,
-                                           position=(open_pos_x, open_pos_y),
-                                           size=(40, 40),
-                                           button_type="square",
-                                           label="",
-                                           color=(0.6, 0.53, 0.63),
-
-                                           on_activate_call=tutorial_confirm_window)
+            open_button = bui.buttonwidget(
+                parent=self._root_widget,
+                autoselect=True,
+                position=(open_pos_x, open_pos_y),
+                size=(40, 40),
+                button_type="square",
+                label="",
+                color=(0.6, 0.53, 0.63)
+            )
+            bui.buttonwidget(open_button,on_activate_call=lambda: tutorial_confirm_window(open_button))
 
             bui.imagewidget(parent=self._root_widget,
                             position=(open_pos_x, open_pos_y),
@@ -1840,38 +1846,42 @@ class PluginManagerWindow(bui.MainWindow):
         b_size = (140, 30)
         b_textcolor = (0.8, 0.8, 0.85)
 
+        lab = self.get_order_label()
         if self.alphabet_order_selection_button is None:
-            self.alphabet_order_selection_button = bui.buttonwidget(parent=self._root_widget,
-                                                                    size=(40, 30),
-                                                                    position=(
-                                                                        category_pos_x - 47,
-                                                                        category_pos_y),
-                                                                    label=(
-                                                                        'Z - A' if self.selected_alphabet_order == 'z_a'
-                                                                        else 'A - Z'),
-                                                                    on_activate_call=(
-                                                                        lambda: loop.create_task(self._on_order_button_press())),
-                                                                    button_type="square",
-                                                                    textcolor=b_textcolor,
-                                                                    text_scale=0.6)
+            self.alphabet_order_selection_button = bui.buttonwidget(
+                parent=self._root_widget,
+                size=(40, 30),
+                position=(
+                    category_pos_x - 47,
+                    category_pos_y),
+                label=lab,
+                on_activate_call=(
+                    lambda: loop.create_task(self._on_order_button_press())),
+                button_type="square",
+                enable_sound=False,
+                textcolor=b_textcolor,
+                text_scale=0.6
+            )
         else:
             b = self.alphabet_order_selection_button
             bui.buttonwidget(
                 edit=b,
-                label=('Z - A' if self.selected_alphabet_order == 'z_a' else 'A - Z')
+                label=lab
             ) if b.exists() else None
 
         label = f"Category: {post_label}"
 
         if self.category_selection_button is None:
-            self.category_selection_button = b = bui.buttonwidget(parent=self._root_widget,
-                                                                  position=(category_pos_x,
-                                                                            category_pos_y),
-                                                                  size=b_size,
-                                                                  label=label,
-                                                                  button_type="square",
-                                                                  textcolor=b_textcolor,
-                                                                  text_scale=0.6)
+            self.category_selection_button = b = bui.buttonwidget(
+                parent=self._root_widget,
+                position=(category_pos_x,
+                        category_pos_y),
+                size=b_size,
+                label=label,
+                button_type="square",
+                textcolor=b_textcolor,
+                text_scale=0.6
+            )
             bui.buttonwidget(b, on_activate_call=lambda: self.show_categories_window(source=b)),
         else:
             b = self.category_selection_button
@@ -1880,11 +1890,13 @@ class PluginManagerWindow(bui.MainWindow):
                 label=label
             ) if b.exists() else None
 
+    def get_order_label(self) -> str:
+        return self.selected_alphabet_order.replace('_',' - ').upper()
+
     async def _on_order_button_press(self) -> None:
+        bui.getsound('deek').play()
         self.selected_alphabet_order = ('a_z' if self.selected_alphabet_order == 'z_a' else 'z_a')
-        bui.buttonwidget(edit=self.alphabet_order_selection_button,
-                         label=('Z - A' if self.selected_alphabet_order == 'z_a' else 'A - Z')
-                         )
+        bui.buttonwidget(edit=self.alphabet_order_selection_button,label=self.get_order_label())
         filter_text = bui.textwidget(parent=self._root_widget, query=self._filter_widget)
         if self.plugin_manager.categories != {}:
             if self.plugin_manager.categories['All'] is not None:
@@ -2107,17 +2119,17 @@ class PluginManagerWindow(bui.MainWindow):
                 color=color,
                 text=plugin.name.replace('_', ' ').title(),
                 click_activate=True,
-                on_activate_call=lambda: self.show_plugin_window(plugin),
                 h_align='left',
                 v_align='center',
                 maxwidth=420
             )
+            bui.textwidget(text_widget, on_activate_call=lambda: self.show_plugin_window(plugin,source=text_widget))
             self.plugins_in_current_view[plugin.name] = text_widget
             # XXX: This seems nicer. Might wanna use this in future.
             # text_widget.add_delete_callback(lambda: self.plugins_in_current_view.pop(plugin.name))
 
-    def show_plugin_window(self, plugin):
-        PluginWindow(plugin, self._root_widget, lambda: self.draw_plugin_name(plugin))
+    def show_plugin_window(self, plugin, source):
+        PluginWindow(plugin, source, lambda: self.draw_plugin_name(plugin))
 
     def show_categories_window(self, source):
         PluginCategoryWindow(
@@ -2214,13 +2226,14 @@ class PluginManagerSettingsWindow(popup.PopupWindow):
         )
 
         pos -= 20
-        self._changelog_button = b = bui.buttonwidget(parent=self._root_widget,
-                                                      position=((width * 0.2) - button_size[0] / 2 - 5,
-                                                                pos),
-                                                      size=(80, 30),
-                                                      textcolor=b_text_color,
-                                                      button_type='square',
-                                                      label='')
+        self._changelog_button = b = bui.buttonwidget(
+            parent=self._root_widget,
+            position=((width * 0.2) - button_size[0] / 2 - 5, pos),
+            size=(80, 30),
+            textcolor=b_text_color,
+            button_type='square',
+            enable_sound=False,
+            label='')
         bui.buttonwidget(b, on_activate_call=lambda: ChangelogWindow(b))
         bui.textwidget(parent=self._root_widget,
                        position=((width * 0.2) - button_size[0] / 2, pos),
@@ -2272,16 +2285,19 @@ class PluginManagerSettingsWindow(popup.PopupWindow):
             plugin_manager_update_available = await self._plugin_manager.get_update_details()
         except urllib.error.URLError:
             plugin_manager_update_available = False
+        if not self._root_widget.exists(): return
         discord_width = (width * 0.20) if plugin_manager_update_available else (width * 0.31)
-        self.discord_button = bui.buttonwidget(parent=self._root_widget,
-                                               position=(discord_width - button_size[0] / 2, pos),
-                                               size=button_size,
-                                               on_activate_call=lambda: bui.open_url(DISCORD_URL),
-                                               textcolor=b_text_color,
-                                               color=discord_bg_color,
-                                               button_type='square',
-                                               text_scale=1,
-                                               label="")
+        self.discord_button = bui.buttonwidget(
+            parent=self._root_widget,
+            position=(discord_width - button_size[0] / 2, pos),
+            size=button_size,
+            on_activate_call=lambda: bui.open_url(DISCORD_URL),
+            textcolor=b_text_color,
+            color=discord_bg_color,
+            button_type='square',
+            text_scale=1,
+            label=""
+        )
 
         bui.imagewidget(parent=self._root_widget,
                         position=(discord_width+0.5 - button_size[0] / 2, pos),
